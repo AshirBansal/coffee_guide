@@ -9,7 +9,7 @@ Three self-contained HTML pages, one per machine, deployed as static assets on a
 | File | Live path | Steps |
 | --- | --- | --- |
 | `grinder.html` | `/grinder` | 6 |
-| `espresso.html` | `/espresso` | 9 |
+| `espresso.html` | `/espresso` | 10 |
 | `drip.html` | `/drip` | 7 |
 | `index.html` | `/` | landing page linking to the three |
 
@@ -52,6 +52,7 @@ Because of `buildDoc`, the script's own source must never contain a literal `</s
 2. **No photos yet.** Every step still renders the placeholder. Expect large commits as photos land.
 3. **Duplicated code.** The CSS and JS are copy-pasted across three files. A build step would fix it but would also break the self-regenerating editor, so the duplication is deliberate for now.
 4. **Grind-setting labels** on the grinder page assume lower numbers are finer, which should be confirmed against the machine.
+5. **Espresso shot times.** The "When to stop" card in `espresso.html` has `___ sec` blanks for a single and a double, waiting on someone timing a shot.
 
 ## Constraints
 
