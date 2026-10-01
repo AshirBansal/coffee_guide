@@ -26,6 +26,9 @@ Edit that block and commit. Keep it valid JSON.
 4. In GitHub, pull in any pending changes first, then Add file → Upload files, drop the file in, and commit to `main`.
    The downloaded file is the whole page, code included, so it replaces whatever is committed.
 
+For animations, don't use the editor: GIFs are too big to go inside the page. Upload the GIFs (or short clips)
+to a separate branch on GitHub and ask Claude to convert them; they become small videos in `media/<page>/`.
+
 Photos are shrunk automatically. Keep GIFs short (under 6 MB each). Each page must stay under 25 MB or
 GitHub and Cloudflare reject it; the editor shows the file size and warns from 15 MB.
 Coworkers without `#edit` in the address never see the editor.

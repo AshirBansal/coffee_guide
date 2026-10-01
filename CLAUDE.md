@@ -16,7 +16,7 @@ Three self-contained HTML pages, one per machine, deployed as static assets on a
 How each page works:
 
 - All content lives in one JSON block in the page: `<script type="application/json" id="data">`. Shape: `{slug, icon, title, subtitle, accent:{light,dark}, steps:[{title, text, img}], outro:{title, text}}`.
-- `img` is either an empty string, which renders a dashed "Photo for step N" placeholder SVG, or a `data:` URI holding a JPEG or GIF.
+- `img` is one of: an empty string, which renders a dashed "Photo for step N" placeholder SVG; a `data:` URI holding a JPEG or GIF (what the editor produces); or a repo path to a video such as `media/espresso/1.mp4`, which plays muted on a loop while its card is showing.
 - The page renders a horizontal scroll-snap deck of cards from that JSON: one card per step, then a closing card. It opens straight on step 1; the header shows the machine's icon, title and subtitle on every card so people can tell which guide they're in.
 - Adding `#edit` to the URL opens a built-in editor for photos and captions.
 - CSS and JS are inlined in each file.
@@ -30,6 +30,9 @@ Edit the files, commit to `main`, and Cloudflare redeploys within a minute or tw
 - **To change wording or steps**, edit the JSON block in that page. Keep it valid JSON; the page parses it at load.
 - **To change behaviour or styling**, edit the inlined `<style id="app-style">` or `<script id="app-script">`. The three pages carry identical copies of both, so a code change must be applied to all three files or they drift.
 - **Photos arrive the other way.** Ashir adds them on his phone at `/<slug>#edit`, taps Download updated file, and commits the result. That downloaded file contains the whole page, so it overwrites any code change not yet committed. Pull before editing, and don't sit on uncommitted work.
+- **Animations arrive as GIFs and ship as videos.** GIFs are far too big to inline (8 espresso GIFs were 68 MB; the page limit is 25 MB). Ashir uploads raw GIFs or clips to a separate branch (never `main`). Convert each one and store it in `media/<slug>/<step number>.mp4`, then set that step's `img` to the path:
+  `ffmpeg -i in.gif -an -c:v libx264 -preset slow -crf 26 -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" -movflags +faststart out.mp4`
+  That turns a 5–12 MB GIF into 80–230 KB. Merge with a squash (or build the change from `main`) so the raw GIFs never enter `main`'s history. The open-source Chromium used for testing can't play H.264, so test playback with temporary WebM copies; phones play the MP4s.
 - Photos are stored inline as `data:` URIs inside the JSON. Diffs on those lines are enormous and unreadable. Never reformat or reflow the JSON block; change only the fields asked for.
 - Repo files that aren't pages (`README.md`, this file) are listed in `.assetsignore` so the Worker doesn't serve them. Add any new non-page file there too: they mention `#edit`.
 
@@ -49,7 +52,7 @@ Because of `buildDoc`, the script's own source must never contain a literal `</s
 ## Open items
 
 1. **Grinder blanks.** Steps 2 and 4 of `grinder.html` contain `setting ___` and `___ seconds`, waiting on the numbers the office settles on.
-2. **No photos yet.** Every step still renders the placeholder. Expect large commits as photos land.
+2. **Media.** Espresso steps 1–8 have videos; espresso 9–10 and all grinder and drip steps still show the placeholder.
 3. **Duplicated code.** The CSS and JS are copy-pasted across three files. A build step would fix it but would also break the self-regenerating editor, so the duplication is deliberate for now.
 4. **Grind-setting labels** on the grinder page assume lower numbers are finer, which should be confirmed against the machine.
 5. **Espresso shot times.** The "When to stop" card in `espresso.html` has `___ sec` blanks for a single and a double, waiting on someone timing a shot.
@@ -59,7 +62,7 @@ Because of `buildDoc`, the script's own source must never contain a literal `</s
 These break something physical or something already printed, so they outrank tidiness.
 
 - **The three paths cannot change.** `/grinder`, `/espresso` and `/drip` are on QR stickers stuck to the machines. Don't rename files or add routing that turns them into redirects.
-- **Keep each page one self-contained file.** No frameworks, no bundler, no CDN scripts. It loads on a phone on hospital wifi, and it is currently about 25 KB before photos.
+- **Keep each page one self-contained file.** No frameworks, no bundler, no CDN scripts. It loads on a phone on hospital wifi, and it is currently about 30 KB before photos. The only separate files are step videos in `media/`, which load one card ahead and are checked by `check_pages.py`.
 - **Keep the `#edit` editor working.** It is how photos and captions get added. Any refactor that breaks `buildDoc` breaks the only path Ashir has from his phone.
 - **Keep the embedded placeholder behaviour.** A step with an empty `img` must still render the dashed frame rather than a broken image.
 - **Don't expose the editor publicly.** Nothing in the default view should mention or link to `#edit`.
@@ -72,6 +75,7 @@ The filter situation is worth knowing: the workplace network blocks `coffee.gasg
 Open the changed files straight from disk in a browser, at a phone-sized viewport.
 
 - [ ] Each page swipes end to end with no console errors.
+- [ ] Step videos play on their card only and pause when you swipe away.
 - [ ] Step numbering and the "of N" counts match the number of steps.
 - [ ] `#edit` opens, a photo can be added, and Download updated file produces a file that itself still renders and still edits.
 - [ ] Dark mode looks right (toggle the OS setting or emulate `prefers-color-scheme`).
