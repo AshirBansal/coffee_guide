@@ -9,7 +9,7 @@ Three self-contained HTML pages, one per machine, deployed as static assets on a
 | File | Live path | Steps |
 | --- | --- | --- |
 | `grinder.html` | `/grinder` | 6 |
-| `espresso.html` | `/espresso` | 8 |
+| `espresso.html` | `/espresso` | 10 |
 | `drip.html` | `/drip` | 7 |
 | `index.html` | `/` | landing page linking to the three |
 
@@ -17,7 +17,7 @@ How each page works:
 
 - All content lives in one JSON block in the page: `<script type="application/json" id="data">`. Shape: `{slug, icon, title, subtitle, accent:{light,dark}, steps:[{title, text, img}], outro:{title, text}}`.
 - `img` is either an empty string, which renders a dashed "Photo for step N" placeholder SVG, or a `data:` URI holding a JPEG or GIF.
-- The page renders a horizontal scroll-snap deck of cards from that JSON: cover card, one card per step, closing card.
+- The page renders a horizontal scroll-snap deck of cards from that JSON: one card per step, then a closing card. It opens straight on step 1; the header shows the machine's icon, title and subtitle on every card so people can tell which guide they're in.
 - Adding `#edit` to the URL opens a built-in editor for photos and captions.
 - CSS and JS are inlined in each file.
 
@@ -49,10 +49,10 @@ Because of `buildDoc`, the script's own source must never contain a literal `</s
 ## Open items
 
 1. **Grinder blanks.** Steps 2 and 4 of `grinder.html` contain `setting ___` and `___ seconds`, waiting on the numbers the office settles on.
-2. **Contact name.** All three closing cards end with "Ask [name]." Needs a real person.
-3. **No photos yet.** Every step still renders the placeholder. Expect large commits as photos land.
-4. **Duplicated code.** The CSS and JS are copy-pasted across three files. A build step would fix it but would also break the self-regenerating editor, so the duplication is deliberate for now.
-5. **Grind-setting labels** on the grinder page assume lower numbers are finer, which should be confirmed against the machine.
+2. **No photos yet.** Every step still renders the placeholder. Expect large commits as photos land.
+3. **Duplicated code.** The CSS and JS are copy-pasted across three files. A build step would fix it but would also break the self-regenerating editor, so the duplication is deliberate for now.
+4. **Grind-setting labels** on the grinder page assume lower numbers are finer, which should be confirmed against the machine.
+5. **Espresso shot times.** The "When to stop" card in `espresso.html` has `___ sec` blanks for a single and a double, waiting on someone timing a shot.
 
 ## Constraints
 
