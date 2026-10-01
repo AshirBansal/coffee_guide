@@ -1,0 +1,6 @@
+# Repo files that must not be served by the Worker (they mention #edit).
+README.md
+CLAUDE.md
+.assetsignore
+.git
+.github
