@@ -34,7 +34,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 :root{--scrim:rgba(10,12,11,.84);--on-scrim:#FFFFFF;--on-scrim-muted:rgba(255,255,255,.75);--media-bg:#000000}
 .media{position:absolute;inset:0 12px;border-radius:18px;overflow:hidden;background:var(--surface);display:flex;align-items:center;justify-content:center}
 .media.v{background:var(--media-bg);cursor:pointer}
-.media img,.media video{width:100%;height:100%;object-fit:contain;display:block}
+.media img,.media video{width:100%;height:100%;object-fit:contain;object-position:top center;display:block}
 .caption{position:absolute;left:12px;right:12px;bottom:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;padding:56px 16px 14px;max-height:72%;overflow-y:auto;border-radius:0 0 18px 18px;color:var(--on-scrim);background:linear-gradient(to bottom,transparent,var(--scrim) 48px);transition:opacity .2s}
 .num{text-align:center;min-width:40px}
 .num b{display:block;font-weight:800;font-size:54px;line-height:.85;color:var(--accent-d);letter-spacing:-.03em}
@@ -110,7 +110,7 @@ button{font:inherit;color:inherit;cursor:pointer}
   },
   {
    "title": "Choose the basket",
-   "text": "Press the basket with the right icon into the portafilter:\nSingle scoop: single espresso\nDouble scoop: double espresso\nCircle: ESE coffee pods (single-serve pods)\nUsing a pod? Skip filling and tamping and go straight to locking in the portafilter.",
+   "text": "Press in the basket with the right icon:\nSingle scoop: single shot\nDouble scoop: double shot\nCircle: ESE coffee pod (skip filling and tamping)",
    "img": "media/espresso/3.mp4"
   },
   {
@@ -130,7 +130,7 @@ button{font:inherit;color:inherit;cursor:pointer}
   },
   {
    "title": "Brew",
-   "text": "Put your cup under the spouts and wait for the Espresso ON/OFF light to stop flashing.\nThen press the brew button: it's the one below the Espresso ON/OFF button, not the same button. Press it once to start. Never pull the portafilter out while it's brewing.",
+   "text": "Place your cup under the spouts.\nConfirm the Espresso ON/OFF light is solid white and not flashing, then press the brew button, directly below the ON/OFF button.",
    "img": "media/espresso/7.mp4"
   },
   {
