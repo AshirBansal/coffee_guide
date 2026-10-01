@@ -30,15 +30,20 @@ button{font:inherit;color:inherit;cursor:pointer}
 .icon-btn svg{width:22px;height:22px}
 .deck{display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;scrollbar-width:none}
 .deck::-webkit-scrollbar{display:none}
-.card{flex:0 0 100%;min-width:0;scroll-snap-align:start;scroll-snap-stop:always;display:grid;grid-template-rows:minmax(0,1fr) auto;overflow:hidden}
-.media{margin:0 16px;min-height:0;border-radius:20px;overflow:hidden;background:var(--surface);display:flex;align-items:center;justify-content:center}
+.card{flex:0 0 100%;min-width:0;scroll-snap-align:start;scroll-snap-stop:always;display:grid;grid-template-rows:minmax(0,1fr) auto;overflow:hidden;position:relative}
+:root{--scrim:rgba(10,12,11,.84);--on-scrim:#FFFFFF;--on-scrim-muted:rgba(255,255,255,.75);--media-bg:#000000}
+.media{position:absolute;inset:0 12px;border-radius:18px;overflow:hidden;background:var(--surface);display:flex;align-items:center;justify-content:center}
+.media.v{background:var(--media-bg);cursor:pointer}
 .media img,.media video{width:100%;height:100%;object-fit:contain;display:block}
-.caption{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;padding:20px 20px 6px;max-height:46dvh;overflow-y:auto}
-.num{text-align:center;min-width:44px}
-.num b{display:block;font-weight:800;font-size:60px;line-height:.85;color:var(--a);letter-spacing:-.03em}
-.num small{display:block;color:var(--muted);font-size:13px;margin-top:6px}
-.caption h2{font-size:25px;line-height:1.15;margin:2px 0 6px;font-weight:700}
-.caption p{margin:0;font-size:17px;max-width:60ch;white-space:pre-line}
+.caption{position:absolute;left:12px;right:12px;bottom:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;padding:56px 16px 14px;max-height:72%;overflow-y:auto;border-radius:0 0 18px 18px;color:var(--on-scrim);background:linear-gradient(to bottom,transparent,var(--scrim) 48px);transition:opacity .2s}
+.num{text-align:center;min-width:40px}
+.num b{display:block;font-weight:800;font-size:54px;line-height:.85;color:var(--accent-d);letter-spacing:-.03em}
+.num small{display:block;color:var(--on-scrim-muted);font-size:13px;margin-top:6px}
+.caption h2{font-size:22px;line-height:1.15;margin:2px 0 6px;font-weight:700}
+.caption p{margin:0;font-size:16px;max-width:60ch;white-space:pre-line}
+.card.bare .caption{opacity:0;pointer-events:none}
+.show-txt{display:none;position:absolute;right:24px;bottom:12px;min-height:40px;padding:0 16px;border:0;border-radius:999px;background:var(--scrim);color:var(--on-scrim);font-size:14px;font-weight:700}
+.card.bare .show-txt{display:block}
 .solo{grid-row:1/-1;display:flex;flex-direction:column;justify-content:center;padding:24px 28px}
 .solo .ic{width:92px;height:92px;color:var(--a);margin-bottom:28px}
 .solo h2{font-weight:800;font-size:clamp(34px,10vw,50px);line-height:1;letter-spacing:-.02em;margin:0 0 14px}
@@ -49,7 +54,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .btn:disabled{opacity:.3;cursor:default}
 .solo .btn{align-self:flex-start;margin-top:22px}
 #pos{color:var(--muted);font-size:14px;font-variant-numeric:tabular-nums;text-align:center;min-width:84px}
-.toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;max-width:90vw;opacity:0;pointer-events:none;transition:opacity .2s;z-index:30}
+.toast{position:fixed;left:50%;top:calc(100px + env(safe-area-inset-top));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;max-width:90vw;opacity:0;pointer-events:none;transition:opacity .2s;z-index:30}
 .toast.show{opacity:1}
 .ed-host{position:fixed;inset:0;background:var(--bg);z-index:20;display:flex}
 .ed{display:flex;flex-direction:column;width:100%;max-width:680px;margin:0 auto;height:100%}
@@ -180,8 +185,16 @@ button{font:inherit;color:inherit;cursor:pointer}
     }
     return '<img src="' + esc(s.img || placeholder(i + 1)) + '" alt="' + esc(s.alt || s.title) + '"' + (i > 1 ? ' loading="lazy"' : "") + ">";
   }
+  var hintShown = false;
+  function videoHint() {
+    if (hintShown || editMode || !data.steps[idx] || !isVideo(data.steps[idx].img)) return;
+    hintShown = true;
+    try { if (localStorage.getItem("coffee-hint-seen")) return; localStorage.setItem("coffee-hint-seen", "1"); } catch (e) {}
+    toast("Tap the video to hide the text");
+  }
   function syncVideos() {
     var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!still) videoHint();
     root.querySelectorAll(".card").forEach(function (card, i) {
       var v = card.querySelector("video");
       if (!v) return;
@@ -200,7 +213,8 @@ button{font:inherit;color:inherit;cursor:pointer}
     var cards = [];
     steps.forEach(function (s, i) {
       cards.push('<section class="card" aria-label="Step ' + (i + 1) + " of " + total + '">' +
-        '<div class="media">' + mediaTag(s, i) + "</div>" +
+        '<div class="media' + (isVideo(s.img) ? " v" : "") + '">' + mediaTag(s, i) + "</div>" +
+        '<button class="show-txt">Show text</button>' +
         '<div class="caption"><div class="num d"><b>' + (i + 1) + "</b><small>of " + total + "</small></div>" +
         '<div><h2 class="d">' + esc(s.title) + "</h2><p>" + esc(s.text) + "</p></div></div></section>");
     });
@@ -226,6 +240,11 @@ button{font:inherit;color:inherit;cursor:pointer}
     document.getElementById("prev").onclick = function () { go(idx - 1); };
     document.getElementById("next").onclick = function () { go(idx + 1); };
     root.querySelectorAll("[data-go]").forEach(function (el) { el.onclick = function () { go(+el.dataset.go); }; });
+    // Tap a video to hide the text over it, and tap again (or Show text) to bring it back.
+    root.querySelectorAll(".media.v").forEach(function (m) {
+      m.onclick = function () { if (!m.querySelector("video").controls) m.parentNode.classList.toggle("bare"); };
+    });
+    root.querySelectorAll(".show-txt").forEach(function (b) { b.onclick = function () { b.parentNode.classList.remove("bare"); }; });
     var eb = document.getElementById("editBtn");
     if (eb) eb.onclick = openEditor;
     requestAnimationFrame(function () { deck.scrollLeft = idx * deck.clientWidth; update(); });
