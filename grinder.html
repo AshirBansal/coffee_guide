@@ -123,7 +123,7 @@ button{font:inherit;color:inherit;cursor:pointer}
  ],
  "outro": {
   "title": "Ready to brew",
-  "text": "Leave the grinder and counter clean for the next person.\nQuestions? Ask [name]."
+  "text": "Leave the grinder and counter clean for the next person.\nQuestions? Ask Ash."
  }
 }</script>
 <script id="app-script">(function () {
@@ -148,6 +148,7 @@ button{font:inherit;color:inherit;cursor:pointer}
   var data = clone(saved);
   var editMode = /(^|[#&])edit\b/.test(location.hash);
   var DRAFT_KEY = "coffee-tutorial-draft-" + saved.slug;
+  var MAX_MB = 25, WARN_MB = 15;
   var root = document.getElementById("root");
   var de = document.documentElement;
   de.style.setProperty("--accent-l", saved.accent.light);
@@ -229,9 +230,10 @@ button{font:inherit;color:inherit;cursor:pointer}
     next.textContent = idx === 0 ? "Start" : idx === n ? "Finish" : "Next";
   }
   document.addEventListener("keydown", function (e) {
-    if (document.getElementById("edHost") && document.getElementById("edHost").firstChild) return;
-    if (e.key === "ArrowRight") go(idx + 1);
-    if (e.key === "ArrowLeft") go(idx - 1);
+    if (document.getElementById("edHost") && document.getElementById("edHost").firstChild) { editorKey(e); return; }
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    if (e.key === "ArrowRight") { e.preventDefault(); go(idx + 1); }
+    if (e.key === "ArrowLeft") { e.preventDefault(); go(idx - 1); }
   });
   window.addEventListener("resize", function () { if (deck) deck.scrollLeft = idx * deck.clientWidth; });
 
@@ -245,9 +247,22 @@ button{font:inherit;color:inherit;cursor:pointer}
     clearTimeout(toast._t);
     toast._t = setTimeout(function () { t.classList.remove("show"); }, 3200);
   }
+  // The draft remembers which published version it was made from, so an old
+  // draft never gets restored over a page that has since been updated.
+  var baseHash;
+  function base() {
+    if (!baseHash) {
+      var s = JSON.stringify(saved), h = 5381;
+      for (var i = 0; i < s.length; i++) h = (h * 33 + s.charCodeAt(i)) | 0;
+      baseHash = (h >>> 0).toString(36) + "-" + s.length;
+    }
+    return baseHash;
+  }
   function persist() {
-    try { localStorage.setItem(DRAFT_KEY, JSON.stringify(draft)); }
+    try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ base: base(), draft: draft })); }
     catch (e) {
+      // Drop the older backup so it can't be restored later in place of these edits.
+      clearDraft();
       if (!storageWarned) { storageWarned = true; toast("Photos are too big to keep as a backup in this browser. Download the file before closing the page."); }
     }
   }
@@ -256,6 +271,25 @@ button{font:inherit;color:inherit;cursor:pointer}
   function openEditor() {
     if (!draft) draft = clone(data);
     renderEditor();
+    document.querySelector(".ed").focus();
+  }
+  function preview() {
+    closeEditor(true);
+    toast("Previewing your changes. Tap the pencil to keep editing.");
+    var eb = document.getElementById("editBtn");
+    if (eb) eb.focus();
+  }
+  // Escape previews; Tab stays inside the editor.
+  function editorKey(e) {
+    if (e.key === "Escape") { e.preventDefault(); preview(); return; }
+    if (e.key !== "Tab") return;
+    var ed = document.querySelector(".ed");
+    var f = ed.querySelectorAll("button, input, textarea");
+    if (!f.length) return;
+    var first = f[0], last = f[f.length - 1], a = document.activeElement;
+    if (!ed.contains(a) || a === ed) { e.preventDefault(); (e.shiftKey ? last : first).focus(); }
+    else if (e.shiftKey && a === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && a === last) { e.preventDefault(); first.focus(); }
   }
   function closeEditor(apply) {
     if (apply) { data = clone(draft); }
@@ -286,7 +320,7 @@ button{font:inherit;color:inherit;cursor:pointer}
         '<button class="sm danger" data-act="del" data-i="' + i + '">Delete step</button></div>' +
         "</div></li>";
     }).join("");
-    host.innerHTML = '<div class="ed-host"><div class="ed" role="dialog" aria-modal="true" aria-label="Edit tutorial">' +
+    host.innerHTML = '<div class="ed-host"><div class="ed" role="dialog" aria-modal="true" aria-label="Edit tutorial" tabindex="-1">' +
       '<div class="ed-head"><h2 class="d">Edit tutorial</h2><button class="sm" data-act="preview">Preview</button></div>' +
       '<div class="ed-body">' +
       '<p class="hint">Changes stay on this device until you download the updated file and upload it to your site under the same name (' + esc(draft.slug) + '.html).</p>' +
@@ -325,7 +359,7 @@ button{font:inherit;color:inherit;cursor:pointer}
       else if (act === "del") { if (!confirm("Delete step " + (i + 1) + "?")) return; s.splice(i, 1); }
       else if (act === "rmphoto") { s[i].img = ""; }
       else if (act === "add") { s.push({ title: "New step", text: "", img: "" }); }
-      else if (act === "preview") { closeEditor(true); toast("Previewing your changes. Tap the pencil to keep editing."); return; }
+      else if (act === "preview") { preview(); return; }
       else if (act === "download") { download(); return; }
       else if (act === "discard") {
         if (!confirm("Discard all changes that haven't been downloaded?")) return;
@@ -338,9 +372,11 @@ button{font:inherit;color:inherit;cursor:pointer}
   function sizeNote() {
     var el = document.getElementById("sizeNote");
     if (!el) return;
-    var mb = buildDoc(draft).length / 1048576;
-    el.textContent = "File size: " + mb.toFixed(1) + " MB" + (mb > 25 ? ". That's large and will load slowly on phones; try fewer or shorter GIFs." : ".");
+    var mb = docMB(buildDoc(draft));
+    el.textContent = "File size: " + mb.toFixed(1) + " MB" + (mb > MAX_MB ? ". Too big to upload: the limit is " + MAX_MB + " MB. Remove a photo or use a shorter GIF." :
+      mb > WARN_MB ? ". Getting large and will load slowly on phones; try fewer or shorter GIFs." : ".");
   }
+  function docMB(html) { return new Blob([html]).size / 1048576; }
 
   function status(msg) { var s = document.getElementById("edStatus"); if (s) s.textContent = msg; }
 
@@ -385,6 +421,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 
   function download() {
     var html = buildDoc(draft);
+    if (docMB(html) > MAX_MB && !confirm("This file is over " + MAX_MB + " MB, so GitHub and Cloudflare will reject it. Download anyway?")) return;
     var blob = new Blob([html], { type: "text/html" });
     var a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
@@ -394,21 +431,32 @@ button{font:inherit;color:inherit;cursor:pointer}
     status("Downloaded " + draft.slug + ".html. Upload it to your site to replace the old one.");
   }
 
-  // Restore an unsaved draft in edit mode
-  if (editMode) {
-    try {
-      var stored = localStorage.getItem(DRAFT_KEY);
-      if (stored && stored !== JSON.stringify(saved)) { draft = JSON.parse(stored); data = clone(draft); }
-    } catch (e) {}
+  // Restore an unsaved draft in edit mode, unless the published page changed since it was made
+  function restoreDraft() {
+    var stored = null, note = "";
+    try { stored = JSON.parse(localStorage.getItem(DRAFT_KEY)); } catch (e) {}
+    if (!stored) return note;
+    if (stored.steps) stored = { base: base(), draft: stored }; // backup saved by an older version of this page
+    if (JSON.stringify(stored.draft) === JSON.stringify(saved)) return note; // already published
+    if (stored.base !== base()) { clearDraft(); return "The page was updated since your last unsaved edits on this device, so those edits were set aside."; }
+    draft = stored.draft; data = clone(draft);
+    return "Restored your unsaved edits from this device.";
   }
+  var restoreNote = editMode ? restoreDraft() : "";
   render();
   if (editMode) {
-    if (draft) toast("Restored your unsaved edits from this device.");
+    if (restoreNote) toast(restoreNote);
     openEditor();
   }
   window.addEventListener("hashchange", function () {
     var m = /(^|[#&])edit\b/.test(location.hash);
-    if (m !== editMode) { editMode = m; render(); if (m) openEditor(); }
+    if (m === editMode) return;
+    editMode = m;
+    var note = "";
+    if (m && !draft) note = restoreDraft();
+    if (!m) data = clone(saved);
+    render();
+    if (m) { openEditor(); if (note) toast(note); }
   });
 })();
 </script>
