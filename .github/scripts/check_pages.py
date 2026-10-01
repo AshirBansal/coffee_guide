@@ -1,5 +1,5 @@
-"""Checks the three tutorial pages: shared code identical, JSON parses, editor-safe script."""
-import json, re, sys
+"""Checks the three tutorial pages: shared code identical, JSON parses, media files exist, editor-safe script."""
+import json, os, re, sys
 
 PAGES = ["grinder.html", "espresso.html", "drip.html"]
 errors, blocks = [], {}
@@ -19,6 +19,10 @@ for page in PAGES:
         d = json.loads(data.group(1))
         if d.get("slug") + ".html" != page:
             errors.append(f"{page}: slug is {d.get('slug')!r}, so downloads would get the wrong file name")
+        for i, step in enumerate(d.get("steps", []), 1):
+            img = step.get("img", "")
+            if img and not img.startswith("data:") and not os.path.isfile(img):
+                errors.append(f"{page}: step {i} points to {img}, which isn't in the repo")
     except ValueError as e:
         errors.append(f"{page}: data block is not valid JSON ({e})")
 
