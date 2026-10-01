@@ -9,7 +9,7 @@ Three self-contained HTML pages, one per machine, deployed as static assets on a
 | File | Live path | Steps |
 | --- | --- | --- |
 | `grinder.html` | `/grinder` | 6 |
-| `espresso.html` | `/espresso` | 8 |
+| `espresso.html` | `/espresso` | 9 |
 | `drip.html` | `/drip` | 7 |
 | `index.html` | `/` | landing page linking to the three |
 
@@ -49,10 +49,9 @@ Because of `buildDoc`, the script's own source must never contain a literal `</s
 ## Open items
 
 1. **Grinder blanks.** Steps 2 and 4 of `grinder.html` contain `setting ___` and `___ seconds`, waiting on the numbers the office settles on.
-2. **Contact name.** All three closing cards end with "Ask [name]." Needs a real person.
-3. **No photos yet.** Every step still renders the placeholder. Expect large commits as photos land.
-4. **Duplicated code.** The CSS and JS are copy-pasted across three files. A build step would fix it but would also break the self-regenerating editor, so the duplication is deliberate for now.
-5. **Grind-setting labels** on the grinder page assume lower numbers are finer, which should be confirmed against the machine.
+2. **No photos yet.** Every step still renders the placeholder. Expect large commits as photos land.
+3. **Duplicated code.** The CSS and JS are copy-pasted across three files. A build step would fix it but would also break the self-regenerating editor, so the duplication is deliberate for now.
+4. **Grind-setting labels** on the grinder page assume lower numbers are finer, which should be confirmed against the machine.
 
 ## Constraints
 
