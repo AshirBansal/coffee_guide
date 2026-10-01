@@ -17,7 +17,7 @@ How each page works:
 
 - All content lives in one JSON block in the page: `<script type="application/json" id="data">`. Shape: `{slug, icon, title, subtitle, accent:{light,dark}, steps:[{title, text, img}], outro:{title, text}}`.
 - `img` is one of: an empty string, which renders a dashed "Photo for step N" placeholder SVG; a `data:` URI holding a JPEG or GIF (what the editor produces); or a repo path to a video such as `media/espresso/1.mp4`, which plays muted on a loop while its card is showing.
-- The page renders a horizontal scroll-snap deck of cards from that JSON: one card per step, then a closing card. It opens straight on step 1; the header shows the machine's icon, title and subtitle on every card so people can tell which guide they're in.
+- The page renders a horizontal scroll-snap deck of cards from that JSON: one card per step, then a closing card. It opens straight on step 1; the header shows the machine's icon, title and subtitle on every card so people can tell which guide they're in. The photo or video fills the card and the step text sits over its bottom on a dark fade (TikTok-style); tapping a video hides the text, and Show text brings it back. The text covers roughly the bottom 35–45% of the card on a standard iPhone and 45–65% on an iPhone SE, so the action in a photo or video should happen in the top half of the frame, and step text should stay short.
 - Adding `#edit` to the URL opens a built-in editor for photos and captions.
 - CSS and JS are inlined in each file.
 
