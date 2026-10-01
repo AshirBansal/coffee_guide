@@ -17,7 +17,7 @@ How each page works:
 
 - All content lives in one JSON block in the page: `<script type="application/json" id="data">`. Shape: `{slug, icon, title, subtitle, accent:{light,dark}, steps:[{title, text, img}], outro:{title, text}}`.
 - `img` is either an empty string, which renders a dashed "Photo for step N" placeholder SVG, or a `data:` URI holding a JPEG or GIF.
-- The page renders a horizontal scroll-snap deck of cards from that JSON: cover card, one card per step, closing card.
+- The page renders a horizontal scroll-snap deck of cards from that JSON: one card per step, then a closing card. It opens straight on step 1; the header shows the machine's icon, title and subtitle on every card so people can tell which guide they're in.
 - Adding `#edit` to the URL opens a built-in editor for photos and captions.
 - CSS and JS are inlined in each file.
 
